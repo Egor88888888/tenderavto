@@ -1,0 +1,42 @@
+name: Analyze Documents
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Download database
+      uses: actions/download-artifact@v3
+      with:
+        name: tenders-db
+        path: data/
+      continue-on-error: true
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Run analysis
+      env:
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+        TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      run: |
+        python main.py analyze
+    
+    - name: Upload updated database
+      uses: actions/upload-artifact@v3
+      with:
+        name: tenders-db
+        path: data/tenders.db
