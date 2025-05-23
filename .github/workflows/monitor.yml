@@ -30,7 +30,7 @@ jobs:
           python main.py monitor
 
       - name: Upload database
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: tenders-db
           path: data/tenders.db
