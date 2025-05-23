@@ -1,10 +1,12 @@
-name: Analyze Tenders
+name: Tender DB Backup
 
 on:
+  schedule:
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 jobs:
-  analyze:
+  backup:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,18 +20,15 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run analyze
-        env:
-          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      - name: Archive database
         run: |
-          python main.py analyze
+          tar -czf db-backup.tar.gz data/tenders.db
 
-      - name: Upload database
+      - name: Upload DB backup
         uses: actions/upload-artifact@v3
         with:
-          name: tenders-db
-          path: data/tenders.db
+          name: db-backup
+          path: db-backup.tar.gz
 
       - name: Telegram Success Notify
         if: success()
@@ -40,7 +39,7 @@ jobs:
           curl -s -X POST 
 https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
             -d chat_id=${TELEGRAM_CHAT_ID} \
-            -d text="✅ Analyze workflow успешно выполнен!"
+            -d text="✅ Backup workflow успешно выполнен!"
 
       - name: Telegram Failure Notify
         if: failure()
@@ -51,5 +50,5 @@ https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
           curl -s -X POST 
 https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
             -d chat_id=${TELEGRAM_CHAT_ID} \
-            -d text="❌ Analyze workflow завершился с ошибкой!"
+            -d text="❌ Backup workflow завершился с ошибкой!"
 

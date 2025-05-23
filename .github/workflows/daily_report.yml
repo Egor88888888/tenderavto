@@ -1,10 +1,12 @@
-name: Analyze Tenders
+name: Daily Tender Report
 
 on:
+  schedule:
+    - cron: '0 6 * * *'
   workflow_dispatch:
 
 jobs:
-  analyze:
+  report:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -18,12 +20,12 @@ jobs:
         run: |
           pip install -r requirements.txt
 
-      - name: Run analyze
+      - name: Run daily report
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
-          python main.py analyze
+          python report.py
 
       - name: Upload database
         uses: actions/upload-artifact@v3
@@ -40,7 +42,7 @@ jobs:
           curl -s -X POST 
 https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
             -d chat_id=${TELEGRAM_CHAT_ID} \
-            -d text="✅ Analyze workflow успешно выполнен!"
+            -d text="✅ Daily report workflow успешно выполнен!"
 
       - name: Telegram Failure Notify
         if: failure()
@@ -51,5 +53,5 @@ https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
           curl -s -X POST 
 https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage \
             -d chat_id=${TELEGRAM_CHAT_ID} \
-            -d text="❌ Analyze workflow завершился с ошибкой!"
+            -d text="❌ Daily report workflow завершился с ошибкой!"
 
